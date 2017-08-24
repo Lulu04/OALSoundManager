@@ -95,10 +95,10 @@ Default pitch value is 1.0.
 
 Volume and Pitch are derived from TBoundedFParam class, so you can
 simply change their value throught time like below:
-   Volume.ChangeTo( newValue, TimeInSeconds, VelocityCurveID );
+   MySound.Volume.ChangeTo( newValue, TimeInSeconds, VelocityCurveID );
 
 To set a value:
-   Volume.Value := 1000;
+   MySound.Volume.Value := 1000;
 
 Available velocity curve for volume and pitch are (see VelocityCurve unit)
   idcLinear
