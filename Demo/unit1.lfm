@@ -1,0 +1,362 @@
+object Form1: TForm1
+  Left = 483
+  Height = 527
+  Top = 188
+  Width = 320
+  Caption = 'OALSoundManager test'
+  ClientHeight = 527
+  ClientWidth = 320
+  Color = 14807551
+  Font.Color = clBlack
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object Button1: TButton
+    Left = 40
+    Height = 27
+    Top = 64
+    Width = 44
+    Caption = 'Play'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object ProgressBar1: TProgressBar
+    Left = 16
+    Height = 24
+    Top = 232
+    Width = 288
+    TabOrder = 1
+  end
+  object Label1: TLabel
+    Left = 25
+    Height = 15
+    Top = 256
+    Width = 34
+    Caption = 'Label1'
+    Font.Color = clBlack
+    ParentColor = False
+    ParentFont = False
+  end
+  object Button2: TButton
+    Left = 128
+    Height = 27
+    Top = 64
+    Width = 41
+    Caption = 'Pause'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 208
+    Height = 27
+    Top = 64
+    Width = 41
+    Caption = 'Stop'
+    OnClick = Button3Click
+    TabOrder = 3
+  end
+  object TrackBar1: TTrackBar
+    Left = 72
+    Height = 27
+    Top = 104
+    Width = 237
+    Frequency = 100
+    Max = 1000
+    OnChange = TrackBar1Change
+    Position = 1000
+    ShowSelRange = False
+    TabOrder = 4
+  end
+  object TrackBar2: TTrackBar
+    Left = 13
+    Height = 27
+    Top = 192
+    Width = 296
+    Frequency = 1000
+    Max = 600
+    Min = 1
+    OnChange = TrackBar2Change
+    Position = 100
+    ShowSelRange = False
+    TabOrder = 5
+  end
+  object Label2: TLabel
+    Left = 16
+    Height = 15
+    Top = 104
+    Width = 40
+    Caption = 'Volume'
+    Font.Color = clBlack
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 16
+    Height = 15
+    Top = 168
+    Width = 51
+    Caption = 'Pitch : 1.0'
+    Font.Color = clBlack
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label4: TLabel
+    Left = 24
+    Height = 15
+    Top = 280
+    Width = 35
+    Caption = 'State : '
+    Font.Color = clBlack
+    ParentColor = False
+    ParentFont = False
+  end
+  object CheckBox1: TCheckBox
+    Left = 16
+    Height = 19
+    Top = 136
+    Width = 47
+    Caption = 'Loop'
+    Color = 11448755
+    OnChange = CheckBox1Change
+    ParentColor = False
+    TabOrder = 6
+  end
+  object BitBtn1: TBitBtn
+    Left = 112
+    Height = 24
+    Top = 8
+    Width = 74
+    Caption = 'LOAD'
+    Font.Color = clBlack
+    Glyph.Data = {
+      36040000424D3604000000000000360000002800000010000000100000000100
+      20000000000000040000640000006400000000000000000000002C86D8D12D88
+      D8F72D87D8F72D88D8F72D88D8F72D88D8F72D88D8F72D88D8F72D88D8F72D88
+      D8F72D88D8F72D87D8F72D88D8F72C86D8D1FFFFFF00FFFFFF00338ED9FBDCF0
+      FAFF98E1F6FF95E0F6FF92DFF6FF8EDEF5FF89DCF5FF85DAF4FF80D9F4FF7AD7
+      F3FF74D5F3FF70D3F2FFC2EAF8FF3594DAFFFFFFFF00FFFFFF003594DAF7EFFA
+      FEFF93E5F8FF8FE4F8FF89E3F8FF82E1F7FF7ADFF7FF71DEF6FF67DBF5FF5BD8
+      F4FF4DD4F3FF40D1F2FFCAF2FBFF3594DAFFFFFFFF00FFFFFF00369ADAF8F2FA
+      FDFF94E6F8FF92E5F8FF90E5F8FF8BE3F8FF86E2F7FF7FE1F7FF77DEF6FF6CDC
+      F6FF5ED9F4FF4FD5F3FFCCF2FBFF3594DAFFFFFFFF00FFFFFF0036A1DAF9F6FC
+      FEFF94E5F8FF93E5F8FF93E5F8FF91E5F8FF93DBE9FF93D7E3FF93D2DCFF90CE
+      D7FF8CC8CFFF86C1C6FFC9D8D6FF3594DAFFC57444E8CA7F53F137A6DAFAFEFF
+      FFFFF8FDFFFFF6FDFFFFF5FCFFFFF3FCFEFF9AE4F4FF9AE6F7FF9BE6F6FF9DE5
+      F5FF9EE5F5FF9FE5F4FFDAF3F8FF3594DAFFFDF4EEFFCA8054F935ABDAFAE8F6
+      FBFF70BCE7FF55AAE2FF4DA5E0FF91C9EBFFFAF3EFFFFDFEFDFFFFFDFCFFFFFD
+      FCFFFEFDFCFFFEFCFBFFFEFEFDFF3594DAFFEFF2E8FFCE8156FF36AADAF2F1FA
+      FDFF94DEF5FF93DCF4FF64BCE9FF3594DAFF3594DAFF3594DAFF3594DAFF3594
+      DAFF3594DAFF3594DAFF3594DAFF3594DAFFFBF6EFFFCC8355FE35AFDAF0F7FC
+      FEFF8EE4F8FF91DEF5FF9FE0F5FFACE1F6FFCA8452FFFFF7F1FFFFE9D9FFFFEA
+      DBFFFFE9D9FFFFE7D7FFFFE5D2FFFFE2CBFFFFF7F1FFCB8555FE36B3DAF8FDFE
+      FEFFFEFFFFFFFEFEFFFFFDFEFFFFFEFFFFFFE4BA91FFFFF7F0FFFFE7D5FFFDE7
+      D6FFFDE6D4FFFCE4D0FFFBE3CBFFFADCC2FFFEF3E8FFCC8656FE34B4D9D05EC2
+      E1FA60C3E2FA60C3E2FA60C3E2FA5FC3E2FAE4BB91FFFFF7F2FFFEE7D5FFFEE7
+      D5FFFDE5D1FFFAE0CAFFF9DEC4FFF7D9BCFFFDF2E7FFCC8757FEFFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00E4BB92FFFEF7F1FFFCE5D2FFFCE4
+      D1FFFBE2CCFFF9DDC4FFF6D7BBFFF3D1AFFFFAEFE4FFCC8758FEFFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00E4BB92FFFEF6F0FFFCE2CDFFFCE3
+      CDFFFADFC8FFF7D9BCFFF5E9DDFFFAF3EBFFFBF8F3FFCA8353FEFFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00E4BB93FFFEF5EDFFFCDEC5FFFBE0
+      C7FFF9DCC2FFF5D3B4FFFEF9F3FFFAE2C4FFECC193FFC37D4893FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00E5BE96FFFFFFFEFFFDF3E9FFFDF3
+      EAFFFCF2E8FFFAEFE3FFFAF2E7FFEABB88FFCF8555B3B4693D0CFFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00EAC39DFFE6BF96FFE4BB92FFE4BB
+      92FFD1A06CF5D09E6DF6CC965FDAC479427EB2673C09FFFFFF00
+    }
+    OnClick = BitBtn1Click
+    ParentFont = False
+    TabOrder = 7
+  end
+  object Label11: TLabel
+    Left = 8
+    Height = 15
+    Top = 40
+    Width = 302
+    AutoSize = False
+    ParentColor = False
+  end
+  object Button6: TButton
+    Left = 88
+    Height = 20
+    Top = 168
+    Width = 33
+    Caption = 'reset'
+    Font.Color = clBlack
+    Font.Height = 12
+    OnClick = Button6Click
+    ParentFont = False
+    TabOrder = 8
+  end
+  object Panel1: TPanel
+    Left = 8
+    Height = 223
+    Top = 299
+    Width = 128
+    ClientHeight = 223
+    ClientWidth = 128
+    Color = 16636413
+    ParentColor = False
+    TabOrder = 9
+    object Image1: TImage
+      Left = 16
+      Height = 90
+      Top = 128
+      Width = 92
+    end
+    object ComboBox1: TComboBox
+      Left = 16
+      Height = 23
+      Top = 96
+      Width = 93
+      ItemHeight = 15
+      OnChange = ComboBox1Change
+      Style = csDropDownList
+      TabOrder = 0
+    end
+    object Label9: TLabel
+      Left = 5
+      Height = 15
+      Top = 80
+      Width = 116
+      Caption = 'Volume velocity curve'
+      Font.Color = clBlack
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label5: TLabel
+      Left = 86
+      Height = 15
+      Top = 48
+      Width = 17
+      Caption = 'sec'
+      Font.Color = clBlack
+      ParentColor = False
+      ParentFont = False
+    end
+    object FSE1: TFloatSpinEdit
+      Left = 24
+      Height = 23
+      Top = 40
+      Width = 56
+      Font.Color = clBlack
+      Increment = 0.2
+      MaxValue = 100
+      MinValue = 0.1
+      ParentFont = False
+      TabOrder = 1
+      Value = 5
+    end
+    object Label7: TLabel
+      Left = 8
+      Height = 15
+      Top = 48
+      Width = 10
+      Caption = 'in'
+      Font.Color = clBlack
+      ParentColor = False
+      ParentFont = False
+    end
+    object Button4: TButton
+      Left = 24
+      Height = 26
+      Top = 8
+      Width = 73
+      Caption = 'FADE IN'
+      OnClick = Button4Click
+      TabOrder = 2
+    end
+  end
+  object Panel2: TPanel
+    Left = 168
+    Height = 223
+    Top = 296
+    Width = 128
+    ClientHeight = 223
+    ClientWidth = 128
+    Color = 14876387
+    ParentColor = False
+    TabOrder = 10
+    object Image2: TImage
+      Left = 16
+      Height = 90
+      Top = 128
+      Width = 92
+    end
+    object ComboBox2: TComboBox
+      Left = 16
+      Height = 23
+      Top = 96
+      Width = 93
+      ItemHeight = 15
+      OnChange = ComboBox2Change
+      Style = csDropDownList
+      TabOrder = 0
+    end
+    object Label10: TLabel
+      Left = 8
+      Height = 15
+      Top = 83
+      Width = 116
+      Caption = 'Volume velocity curve'
+      Font.Color = clBlack
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label6: TLabel
+      Left = 88
+      Height = 15
+      Top = 51
+      Width = 17
+      Caption = 'sec'
+      Font.Color = clBlack
+      ParentColor = False
+      ParentFont = False
+    end
+    object FSE2: TFloatSpinEdit
+      Left = 24
+      Height = 23
+      Top = 43
+      Width = 56
+      Font.Color = clBlack
+      Increment = 0.2
+      MaxValue = 100
+      MinValue = 0.1
+      ParentFont = False
+      TabOrder = 1
+      Value = 7
+    end
+    object Label8: TLabel
+      Left = 8
+      Height = 15
+      Top = 51
+      Width = 10
+      Caption = 'in'
+      Font.Color = clBlack
+      ParentColor = False
+      ParentFont = False
+    end
+    object Button5: TButton
+      Left = 24
+      Height = 25
+      Top = 11
+      Width = 73
+      Caption = 'FADE OUT'
+      OnClick = Button5Click
+      TabOrder = 2
+    end
+  end
+  object Timer1: TTimer
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 216
+    top = 152
+  end
+  object OD1: TOpenDialog
+    Title = 'Open WAV file'
+    Filter = 'All files|*.*|WAV files|*.wav'
+    FilterIndex = 2
+    left = 259
+    top = 152
+  end
+end
