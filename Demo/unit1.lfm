@@ -3,14 +3,14 @@ object Form1: TForm1
   Height = 527
   Top = 188
   Width = 320
-  Caption = 'OALSoundManager test'
+  Caption = 'OALSoundManager - demo'
   ClientHeight = 527
   ClientWidth = 320
   Color = 14807551
   Font.Color = clBlack
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '1.8.0.6'
   object Button1: TButton
     Left = 40
     Height = 27
