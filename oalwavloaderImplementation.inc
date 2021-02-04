@@ -111,7 +111,7 @@ end;
 function TWavLoader.GetAllData: TArrayOfByte;
 begin
  if not FWavHeaderInitialized
-   then SetLength( Result, 0 )
+   then SetLength( Result{%H-}, 0 )
    else begin
      SetLength( Result, FWavDataByteLength );
      FStream.Position := FWavDataStreamPos;
@@ -174,5 +174,6 @@ function TWavLoader.GetDataSizeInByte: QWord;
 begin
  Result := FWavDataByteLength;
 end;
+
 
 

@@ -61,6 +61,8 @@ const
   AL_FORMAT_STEREO8 = $1102;
   AL_FORMAT_STEREO16 = $1103;
 
+  AL_NO_ERROR = 0;
+
 type
   PALCdevice = ^ALCdevice;
   ALCdevice = record
@@ -91,6 +93,7 @@ var
   alcDestroyContext: procedure(context: PALCcontext); cdecl;
   alcMakeContextCurrent: function(context: PALCcontext): cbool; cdecl;
   alDistanceModel: procedure(distanceModel: cint32); cdecl;
+  alGetError: function(): cint32; cdecl;
 
   _OpenALLibraryLoaded: boolean = False;
   _OpenALLib_ReferenceCounter: cardinal = 0;
@@ -153,6 +156,8 @@ begin
         DynLibs.GetProcedureAddress(_OpenALLib_Handle, PChar('alcMakeContextCurrent'));
       Pointer(alDistanceModel) :=
         DynLibs.GetProcedureAddress(_OpenALLib_Handle, PChar('alDistanceModel'));
+      Pointer(alGetError) :=
+        DynLibs.GetProcedureAddress(_OpenALLib_Handle, PChar('alGetError'));
       _OpenALLib_ReferenceCounter := 1;
       _OpenALLibraryLoaded := True;
     end;
@@ -175,3 +180,4 @@ begin
 end;
 
 end.
+

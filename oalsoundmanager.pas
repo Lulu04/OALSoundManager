@@ -1,21 +1,21 @@
 {
-  ****************************************************************************
+  **************************************************************************
  *                                                                          *
- *  This file is part of OpenALSoundManager library which is distributed    *
- *  under the modified LGPL.                                                *
+ *  This file is part of OpenALSoundManager library.                        *
  *                                                                          *
- *  See the file COPYING.modifiedLGPL.txt, included in this distribution,   *
+ *  See the file LICENSE included in this distribution,                     *
  *  for details about the copyright.                                        *
  *                                                                          *
- *  This program is distributed in the hope that it will be useful,         *
+ *  This software is distributed in the hope of being useful                *
+ *  for learning purposes about OpenGL and Lazarus,                         *
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of          *
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                    *
  *                                                                          *
- ****************************************************************************
+  **************************************************************************
 
- written by Lulu - 2017
-
+ written by Lulu  2017 - 2018
 }
+
 
 {
 
@@ -133,8 +133,8 @@ uses
 const
 
 // Volume range
-  oal_VOLUME_MIN =    0 ;
-  oal_VOLUME_MAX = 1000 ;
+  oal_VOLUME_MIN =    0;
+  oal_VOLUME_MAX =    1;
 
 // Pitch range
   oal_PITCH_MAX     = 4.0;
@@ -188,13 +188,19 @@ protected
   FPaused: boolean;
   FPan: integer;
   FPitch: single;
-  FVolumeFadeOut: boolean;
+protected
+  FFadeOutEnabled,
+  FKillAfterFadeOut,
+  FKillAfterPlay,
+  FKill: boolean;
 private
+  FGlobalVolume: single;
   function GetBitsPerSample: byte;
   function GetChannelCount: integer;
   function GetFormat: word;
   function GetFrequency: integer;
   function GetSampleCount: QWord;
+  procedure SetGlobalVolume(AValue: single);
   procedure SetLoop(AValue: boolean);
   procedure SetALVolume;
   procedure SetALPitch;
@@ -209,8 +215,15 @@ public
   procedure Pause;
 
   procedure FadeIn( ATimeSec: single; AVelocityCurve: word=idcLinear );
-  procedure FadeIn( AVolume: integer; ATimeSec: single; AVelocityCurve: word=idcLinear );
+  procedure FadeIn( AVolume: single; ATimeSec: single; AVelocityCurve: word=idcLinear );
   procedure FadeOut( ATimeSec: single; AVelocityCurve: word=idcLinear );
+
+  // play the sound one time and kill it when it reach the end. Loop need to be set to FALSE
+  procedure PlayThenKill( FromBeginning: boolean= TRUE );
+  // fadeout the sound and kill it
+  procedure FadeOutThenKill( aDuration: single; aCurve: Word=idcLinear );
+  // kill the sound (stop it and free ressources for this sound)
+  procedure Kill;
 
   function GetState: integer;
   function GetFileError: TOALError;
@@ -222,7 +235,7 @@ public
 
 public
   Volume: TVolumeParam;    // [0..oal_VOLUME_MAX]
-  Pitch:  TPitchParam;     // pitch is [0.5,2.0] range
+  Pitch:  TPitchParam;     // pitch is [0.1,4.0] range
   property Frequency: integer read GetFrequency;
   property Loop: boolean read FLoop write SetLoop;
   property ChannelCount : integer read GetChannelCount;
@@ -230,6 +243,7 @@ public
   property SampleCount: QWord read GetSampleCount;
   property BitsPerSample: byte read GetBitsPerSample;
   property State: integer read GetState;
+  property GlobalVolume: single read FGlobalVolume write SetGlobalVolume;// global volume [0..1] set to 1 by default
 end;
 
 type
@@ -240,7 +254,6 @@ TDoUpdate=procedure( const aElapsedTime: single ) of object;
 TTimeableThread= class( TThread )
 private
   FPeriodUpdate: integer;
-  FIsTerminated: boolean;
   FDoUpdate: TDoUpdate ;
   procedure SetPeriodUpdate(AValue: integer);
 protected
@@ -249,7 +262,6 @@ public
  Constructor Create( aCallBackDoUpdate: TDoUpdate; aUpdatePeriod: integer; aStart: boolean );
  property UpdatePeriod: integer read FPeriodUpdate write SetPeriodUpdate; // period is in millisecond
  property DoUpdate: TDoUpdate read FDoUpdate write FDoUpdate;
- property IsTerminated: boolean read FIsTerminated;
 end;
 
 { TOALCustomSoundManager }
@@ -265,20 +277,24 @@ private
   FList    : TList;
   FDevice  : PALCdevice;
   FContext : PALCcontext;
+  function GetCount: integer;
   function GetSoundCount: integer;
   function GetSoundByIndex(aIndex: integer): TOALSound;
   procedure DoDeleteSound( AIndex: integer );
   function GetOpenALLibraryLoaded: boolean;
 public
-  function Add( const aFilename: string ): TOALSound;
+  function Add( const aFilename: string; aLooped: boolean=FALSE ): TOALSound;
+  procedure PlayThenKill( const aFilename: string; aVolume: single );
+
   procedure Delete( ASound: TOALSound );
   procedure Clear;
   procedure StopAllSound;
   property OpenALLibraryLoaded: boolean read GetOpenALLibraryLoaded;
+  property Count: integer read GetCount;
 end;
 
 var
-  OALManager : TOALCustomSoundManager ;
+  OALManager: TOALCustomSoundManager;
 
 implementation
 
@@ -310,7 +326,6 @@ begin
           end;
    if FPeriodUpdate > 1 then sleep( FPeriodUpdate - 1 );
   end;
- FIsTerminated:=TRUE;
 end;
 
 constructor TTimeableThread.Create(aCallBackDoUpdate: TDoUpdate;
@@ -318,7 +333,6 @@ constructor TTimeableThread.Create(aCallBackDoUpdate: TDoUpdate;
 begin
  inherited Create(true );
  FPeriodUpdate := aUpdatePeriod;
- FIsTerminated := FALSE;
  FDoUpdate := aCallBackDoUpdate;
  if aStart then Start;
 end;
@@ -348,7 +362,10 @@ begin
  if _OpenALLibraryLoaded then
  begin
    FDevice := alcOpenDevice(NIL);
-   FContext := alcCreateContext(FDevice, NIL);
+   if (alGetError() = AL_NO_ERROR) and
+      (FDevice<>NIL)
+     then FContext := alcCreateContext(FDevice, NIL)
+     else FContext := NIL;
    if FContext = NIL then raise exception.create('OpenAL error: no context created...');
    alcMakeContextCurrent( FContext );
    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
@@ -362,7 +379,7 @@ end;
 destructor TOALCustomSoundManager.Destroy;
 begin
  FThread.Terminate;
- while not FThread.IsTerminated do;
+ FThread.WaitFor;
  FThread.Free;
 
  Clear;
@@ -373,7 +390,9 @@ begin
  if _OpenALLibraryLoaded then
  begin
    alcMakeContextCurrent(NIL);
-   alcDestroyContext(FContext);
+   if FContext<>NIL
+     then alcDestroyContext(FContext);
+   FContext:=NIL;
    alcCloseDevice(FDevice);
  end;
 
@@ -382,11 +401,15 @@ end;
 
 procedure TOALCustomSoundManager.DoUpdate(const aElapsedTime: single);
 var i: integer;
+    s: TOALSound;
 begin
  try
   EnterCriticalSection( FCriticalSection );
-  for i:=0 to GetSoundCount-1 do
-    GetSoundByIndex(i).Update( aElapsedTime );
+  for i:=GetSoundCount-1 downto 0 do begin
+    s := GetSoundByIndex(i);
+    if s.FKill then DoDeleteSound( FList.IndexOf(s) )
+               else s.Update( aElapsedTime );
+  end;
  finally
   LeaveCriticalSection( FCriticalSection );
  end;
@@ -426,6 +449,11 @@ begin
  end;
 end;
 
+function TOALCustomSoundManager.GetCount: integer;
+begin
+  Result:=FList.Count;
+end;
+
 function TOALCustomSoundManager.GetSoundByIndex(aIndex: integer): TOALSound;
 begin
  try
@@ -440,13 +468,13 @@ procedure TOALCustomSoundManager.DoDeleteSound(AIndex: integer);
 begin
  if (AIndex < 0) and (AIndex >= GetSoundCount ) then exit;
 
- try
-  EnterCriticalSection( FCriticalSection );
+// try
+//  EnterCriticalSection( FCriticalSection );
   TOALSound( FList.Items[AIndex] ).Free;
   FList.Delete( AIndex );
- finally
-  LeaveCriticalSection( FCriticalSection );
- end;
+// finally
+//  LeaveCriticalSection( FCriticalSection );
+// end;
 end;
 
 function TOALCustomSoundManager.GetOpenALLibraryLoaded: boolean;
@@ -454,20 +482,35 @@ begin
  Result := _OpenALLibraryLoaded;
 end;
 
-function TOALCustomSoundManager.Add(const aFilename: string): TOALSound;
+function TOALCustomSoundManager.Add(const aFilename: string; aLooped: boolean): TOALSound;
 begin
  try
   EnterCriticalSection( FCriticalSection );
   Result := TOALSound.Create( aFilename );
+  Result.Loop:=aLooped;
   FList.Add( Result );
  finally
   LeaveCriticalSection( FCriticalSection );
  end;
 end;
 
+procedure TOALCustomSoundManager.PlayThenKill(const aFilename: string; aVolume: single);
+var snd: TOALSound;
+begin
+ snd := Add(aFilename);
+ if snd=NIL then exit;
+ snd.Volume.Value:=aVolume;
+ snd.PlayThenKill(TRUE);
+end;
+
 procedure TOALCustomSoundManager.Delete(ASound: TOALSound);
 begin
- DoDeleteSound( FList.IndexOf( ASound ));
+ try
+  EnterCriticalSection( FCriticalSection );
+  DoDeleteSound( FList.IndexOf( ASound ));
+ finally
+  LeaveCriticalSection( FCriticalSection );
+ end;
 end;
 
 { TOALSound }
@@ -476,7 +519,7 @@ begin
  Volume := TVolumeParam.Create;
  Volume.FParentOALSound := Self;
  Volume.MaxValue := oal_VOLUME_MAX;
- Volume.MinValue := 0;
+ Volume.MinValue := oal_VOLUME_MIN;
  Volume.Value := oal_VOLUME_MAX;
 
  Pitch := TPitchParam.Create;
@@ -484,6 +527,8 @@ begin
  Pitch.MaxValue := oal_PITCH_MAX;
  Pitch.MinValue := oal_PITCH_MIN;
  Pitch.Value := oal_PITCH_NORMAL;
+
+ GlobalVolume:=oal_VOLUME_MAX;
 
  FPaused:=FALSE;
  FLoop := FALSE ;
@@ -547,6 +592,13 @@ begin
  Result := FWavLoader.GetSampleCount;
 end;
 
+procedure TOALSound.SetGlobalVolume(AValue: single);
+begin
+  if FGlobalVolume=AValue then Exit;
+  FGlobalVolume:=AValue;
+  SetALVolume;
+end;
+
 
 procedure TOALSound.SetLoop(AValue: boolean);
 var v : integer ;
@@ -562,7 +614,7 @@ procedure TOALSound.SetALVolume;
 begin
  if FError then exit;
  if _OpenALLibraryLoaded then
-  alSourcef( FSource, AL_GAIN, Volume.Value / oal_VOLUME_MAX );
+  alSourcef( FSource, AL_GAIN, Volume.Value / oal_VOLUME_MAX*GlobalVolume );
 end;
 
 procedure TOALSound.SetALPitch;
@@ -585,10 +637,13 @@ begin
 
  if v <> Volume.Value then SetALVolume;
 
- if ( Volume.State = psNO_CHANGE ) and FVolumeFadeOut then begin
-   FVolumeFadeOut := FALSE;
+ if ( Volume.State = psNO_CHANGE ) and FFadeOutEnabled then begin
+   FFadeOutEnabled := FALSE;
    if _OpenALLibraryLoaded then alSourceStop( FSource );
+   FKill := FKillAfterFadeOut;
  end;
+
+ if FKillAfterPlay and (GetState=AL_STOPPED) then FKill := TRUE;
 
  if p <> Pitch.Value then SetALPitch;
 
@@ -645,7 +700,7 @@ begin
    alSourcePlay( FSource );
   end;
  end;
- FVolumeFadeOut := FALSE;
+ FFadeOutEnabled := FALSE;
 end;
 
 procedure TOALSound.Stop;
@@ -654,7 +709,7 @@ begin
  if not _OpenALLibraryLoaded then exit;
 
  alSourceStop(FSource);
- FVolumeFadeOut := FALSE;
+ FFadeOutEnabled := FALSE;
 end;
 
 procedure TOALSound.Pause;
@@ -667,7 +722,7 @@ begin
   AL_PLAYING: alSourcePause( FSource );
   AL_STOPPED,AL_INITIAL:;
  end;
- FVolumeFadeOut := FALSE;
+ FFadeOutEnabled := FALSE;
 end;
 
 procedure TOALSound.FadeIn(ATimeSec: single; AVelocityCurve: word);
@@ -675,7 +730,7 @@ begin
  FadeIn( oal_VOLUME_MAX, ATimeSec, AVelocityCurve );
 end;
 
-procedure TOALSound.FadeIn(AVolume: integer; ATimeSec: single;
+procedure TOALSound.FadeIn(AVolume: single; ATimeSec: single;
   AVelocityCurve: word);
 begin
  if FError then exit;
@@ -694,7 +749,7 @@ begin
   end;
   AL_PLAYING: Volume.ChangeTo(aVolume, ATimeSec, AVelocityCurve );
  end;
- FVolumeFadeOut := FALSE;
+ FFadeOutEnabled := FALSE;
 end;
 
 procedure TOALSound.FadeOut(ATimeSec: single; AVelocityCurve: word);
@@ -706,14 +761,36 @@ begin
   AL_STOPPED, AL_INITIAL:;
   AL_PLAYING: begin
    Volume.ChangeTo( 0, ATimeSec, AVelocityCurve);
-   FVolumeFadeOut := TRUE;
+   FFadeOutEnabled := TRUE;
   end;
   AL_PAUSED: begin
    Volume.ChangeTo( 0, ATimeSec, AVelocityCurve);
-   FVolumeFadeOut := TRUE;
+   FFadeOutEnabled := TRUE;
    alSourcePlay( FSource );
   end;
  end;
+end;
+
+procedure TOALSound.PlayThenKill(FromBeginning: boolean);
+begin
+ Loop:=FALSE;
+ FKillAfterPlay := TRUE;
+ Play( FromBeginning );
+end;
+
+procedure TOALSound.FadeOutThenKill(aDuration: single; aCurve: Word);
+begin
+ if (GetState=AL_STOPPED)or(GetState=AL_PAUSED)
+   then Kill
+   else begin
+         FKillAfterFadeOut := TRUE;
+         FadeOut( aDuration, aCurve );
+   end;
+end;
+
+procedure TOALSound.Kill;
+begin
+ FKill := TRUE;
 end;
 
 function TOALSound.GetState: integer;
@@ -736,4 +813,5 @@ Finalization
 OALManager.Free;
 
 end.
+
 

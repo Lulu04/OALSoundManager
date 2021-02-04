@@ -145,7 +145,7 @@ type
     destructor Destroy; override;
     procedure OnElapse(const AElapsedSec: single); override;
 
-    // use curve
+    // use velocity curve
     procedure ChangeTo(aNewValue, aSecond: single; aCurveID: word = idcLinear); virtual;
     // add a constant per second
     procedure AddConstant(aConstPerSecond: single);
@@ -162,17 +162,19 @@ type
   private
     function GetpcValue: single;
     procedure SetpcValue(AValue: single);
+    procedure ClampPercent( var AValue: single );
   protected
+    function GetValue: single; override;
     procedure SetValue(AValue: single); override;
     procedure ApplyBounds(var AValue: single);
   public
     MinValue, MaxValue: single;
     Loop: boolean;
-    // if TRUE, value can loop between bounds (usefull for i.e. [0..360] angle)
+    // if Loop is set to TRUE, value can loop between bounds (usefull for i.e. [0..360] angle)
+    // if it's set to FALSE, value is clamped to MinValue and MaxValue.
     procedure SetBoundary(aMin, aMax: single; aLoop: boolean = False);
     procedure OnElapse(const AElapsedSec: single); override;
-    procedure ChangeTo(aNewValue, aSecond: single; aCurveID: word = idcLinear); override;
-    // percentage range is [0..100], 0% is MinValue and 100% is MaxValue (see SetBoundary)
+    // percentage range is [0..1], 0 is MinValue and 1 is MaxValue (see SetBoundary)
     function PercentToValue(aPercentage: single): single;
     function ValueToPercent(aValue: single): single;
     function pcRandomValueBetween(PercentageMin, PercentageMax: single): single;
@@ -424,6 +426,20 @@ begin
   SetValue(v);
 end;
 
+procedure TBoundedFParam.ClampPercent(var AValue: single);
+begin
+ if AValue < 0.0
+   then AValue := 0.0
+   else if AValue > 1.0
+          then Avalue := 1.0;
+end;
+
+function TBoundedFParam.GetValue: single;
+begin
+ Result := FValue;
+ ApplyBounds( Result );
+end;
+
 procedure TBoundedFParam.SetValue(AValue: single);
 begin
   ApplyBounds(AValue);
@@ -435,15 +451,13 @@ var
   delta: single;
 begin
   if Loop then
-  begin
+  begin  // loop mode
     delta := MaxValue - MinValue;
-    while AValue < MinValue do
-      AValue += delta;
-    while AValue > MaxValue do
-      AValue -= delta;
+    while AValue < MinValue do AValue += delta;
+    while AValue > MaxValue do AValue -= delta;
   end
   else
-  begin
+  begin  // clamp mode
     if AValue < MinValue then
       AValue := MinValue
     else if AValue > MaxValue then
@@ -465,20 +479,17 @@ begin
   end;
 
   Loop := aLoop;
-  ApplyBounds(FValue);
 end;
 
 function TBoundedFParam.PercentToValue(aPercentage: single): single;
-var
-  delta: single;
 begin
-  delta := MaxValue - MinValue;
-  Result := delta * aPercentage * 0.01 + MinValue;
+  ClampPercent( aPercentage );
+  Result := ( MaxValue - MinValue ) * aPercentage + MinValue;
 end;
 
 function TBoundedFParam.ValueToPercent(aValue: single): single;
 begin
-  Result := (aValue - MinValue) / (MaxValue - MinValue) * 100.0;
+  Result := (aValue - MinValue) / (MaxValue - MinValue);
 end;
 
 function TBoundedFParam.pcRandomValueBetween(PercentageMin, PercentageMax:
@@ -486,8 +497,18 @@ function TBoundedFParam.pcRandomValueBetween(PercentageMin, PercentageMax:
 var
   p: single;
 begin
-  p := random(round((PercentageMax - PercentageMin) * 10000.0)) *
-    0.00001 + PercentageMin;
+  ClampPercent( PercentageMin );
+  ClampPercent( PercentageMax );
+
+  if PercentageMin > PercentageMax then
+  begin
+    p := PercentageMax;
+    PercentageMax := PercentageMin;
+    PercentageMin := p;
+  end;
+
+  p := random(round((PercentageMax - PercentageMin) * 1000000.0)) *
+    0.0000001 + PercentageMin;
   Result := PercentToValue(p);
 end;
 
@@ -495,14 +516,9 @@ procedure TBoundedFParam.pcChangeTo(aNewPercentValue, aSecond: single; aCurveID:
 var
   v: single;
 begin
+  ClampPercent( aNewPercentValue );
   v := PercentToValue(aNewPercentValue);
   ChangeTo(v, aSecond, aCurveID);
-end;
-
-procedure TBoundedFParam.ChangeTo(aNewValue, aSecond: single; aCurveID: word);
-begin
-  ApplyBounds(aNewValue);
-  inherited ChangeTo(aNewValue, aSecond, aCurveID);
 end;
 
 procedure TBoundedFParam.OnElapse(const AElapsedSec: single);
@@ -511,9 +527,7 @@ begin
     psADD_CONSTANT:
     begin
       FValue += FConstPerSecond * AElapsedSec;
-      if Loop then
-        ApplyBounds(FValue)
-      else
+      if not Loop then
       begin
         if FValue <= MinValue then
         begin
@@ -527,6 +541,7 @@ begin
         end;
       end;
     end;
+
     psUSE_CURVE:
     begin
       FValue := FCurve.Compute(AElapsedSec);
@@ -969,3 +984,4 @@ initialization
 finalization
   FreeAndNil(VelocityCurveList);
 end.
+
