@@ -10,7 +10,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="6"/>
         <CursorPos X="20" Y="12"/>
-        <UsageCount Value="153"/>
+        <UsageCount Value="154"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -20,10 +20,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="193"/>
-        <CursorPos X="43" Y="203"/>
-        <UsageCount Value="153"/>
+        <TopLine Value="192"/>
+        <CursorPos X="32" Y="205"/>
+        <UsageCount Value="154"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -34,7 +33,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="18" Y="38"/>
-        <UsageCount Value="94"/>
+        <UsageCount Value="95"/>
       </Unit2>
       <Unit3>
         <Filename Value="OALSoundManager\oalsoundmanager.pas"/>
@@ -43,7 +42,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="51"/>
         <CursorPos X="9" Y="24"/>
-        <UsageCount Value="101"/>
+        <UsageCount Value="102"/>
       </Unit3>
       <Unit4>
         <Filename Value="OALSoundManager\VelocityCurve.pas"/>
@@ -51,7 +50,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="19"/>
         <CursorPos Y="39"/>
-        <UsageCount Value="82"/>
+        <UsageCount Value="83"/>
       </Unit4>
       <Unit5>
         <Filename Value="OALSoundManager\openalsoundwavfileloader.pas"/>
@@ -344,8 +343,9 @@
       <Unit47>
         <Filename Value="..\oalsoundmanager.pas"/>
         <UnitName Value="OALSoundManager"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="147"/>
+        <TopLine Value="153"/>
         <CursorPos X="17" Y="155"/>
         <UsageCount Value="16"/>
         <Loaded Value="True"/>
