@@ -7,7 +7,6 @@ Limitations:
   - Load the whole wav data in memory, no streaming process
 
 written by Lulu - 2017
-contact@lulutech.fr
 
 -- USAGE --
 
